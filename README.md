@@ -22,7 +22,6 @@ Voice Chat AI is a project that allows you to interact with different AI charact
 ### Requirements
 
 - Python 3.10
-- CUDA-enabled GPU
 - Microsoft C++ Build Tools on windows
 - Microphone
 - A sense of humor
@@ -32,7 +31,7 @@ Voice Chat AI is a project that allows you to interact with different AI charact
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/bigsk1/voice-chat-ai.git
+   git clone https://github.com/bigsk1/voice-chat-ai/tree/cpu-only
    cd voice-chat-ai
    ```
 
@@ -49,21 +48,14 @@ Voice Chat AI is a project that allows you to interact with different AI charact
    conda create --name voice-chat-ai python=3.10
    conda activate voice-chat-ai
 
-   # Install CUDA-enabled PyTorch and other dependencies
-   pip install torch==2.3.1+cu121 torchaudio==2.3.1+cu121 torchvision==0.18.1+cu121 -f https://download.pytorch.org/whl/torch_stable.html
-   pip install -r requirements.txt
-
+   
    # For CPU-only installations, use:
    pip install -r cpu_requirements.txt
    ```
 
 3. Install dependencies:
 
-   For GPU (CUDA) version: RECOMMEND
 
-   ```bash
-   pip install -r requirements.txt
-   ```
 
    For CPU-only version: ( not advised and may need some additional work )
 
