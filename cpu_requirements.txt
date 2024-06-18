@@ -9,8 +9,12 @@ numpy
 faster-whisper==1.0.2
 soundfile==0.12.1
 langid==1.1.6
-TTS==0.22.0
+TTS
 pydub==0.25.1
 openai==1.33.0
 textblob==0.18.0.post0
 python-dotenv==1.0.1
+requests
+pillow
+wave
+simpleaudio
