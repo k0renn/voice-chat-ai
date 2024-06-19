@@ -437,7 +437,7 @@ def sanitize_response(response):
 def user_chatbot_conversation():
     conversation_history = []
     base_system_message = open_file(character_prompt_file)
-    quit_phrases = ["quit", "Quit", "Quit.", "Exit.", "Leave."]
+    quit_phrases = ["quit", "Quit", "Quit.", "Exit.", "exit", "Exit", "Leave."]
     screenshot_phrases = [
         "what's on my screen", 
         "take a screenshot", 
