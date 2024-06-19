@@ -7,10 +7,17 @@ Voice Chat AI is a project that allows you to interact with different AI charact
 
 ![Ai-Speech](https://imagedelivery.net/WfhVb8dSNAAvdXUdMfBuPQ/ed0edfea-265d-4c23-d11d-0b5ba0f02d00/public)
 
+### Notes about cpu only mode
+
+The CPU Only version doesn't use the XTTS or Checkpoints, in my testing unless using on a GPU it is to resource intensive. So you will have to use OpenAI API for speech, you can use ollama or openai for chat. 
+
+Want to use ollama and have it analyze the screen make sure to download llava in your ollama install, no need to have llava as model in .env it is hardcoded to use when asking for screen analysis, llama3 even with function calling python package wouldn't work so we use llava just for that.  
+
+
 ## Features
 
 - **Supports both OpenAI and Ollama language models**: Choose the model that best fits your needs.
-- **Provides text-to-speech synthesis using XTTS or OpenAI TTS**: Enjoy natural and expressive voices.
+- **Provides text-to-speech synthesis using OpenAI TTS**: Enjoy natural and expressive voices.
 - **No typing needed, just speak**: Hands-free interaction makes conversations smooth and effortless.
 - **Analyzes user mood and adjusts AI responses accordingly**: Get personalized responses based on your mood.
 - **You can, just by speaking, have the AI analyze your screen and chat about it**: Seamlessly integrate visual context into your conversations.
@@ -66,29 +73,6 @@ Voice Chat AI is a project that allows you to interact with different AI charact
 Need to have Microsoft C++ Build Tools for TTS
 [Microsoft Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/)
 
-### Download Checkpoints
-
-You need to download the checkpoints for the models used in this project. You can download them from the GitHub releases page and extract the zip into the project folder.
-
-- [Download Checkpoint](https://github.com/bigsk1/voice-chat-ai/releases/download/models/checkpoints.zip)
-- [Download XTTS-v2](https://github.com/bigsk1/voice-chat-ai/releases/download/models/XTTS-v2.zip)
-
-After downloading, place the folders as follows:
-
-```bash
-voice-chat-ai/
-├── checkpoints/
-│   ├── base_speakers/
-│   │   ├── EN/
-│   │   │   └── checkpoint.pth
-│   │   ├── ZH/
-│   │   │   └── checkpoint.pth
-│   ├── converter/
-│   │   └── checkpoint.pth
-├── XTTS-v2/
-│   ├── config.json
-│   ├── other_xtts_files...
-```
 
 #### Linux CLI Instructions
 
@@ -121,11 +105,10 @@ MODEL_PROVIDER=ollama
 # Character to use - Options: samantha, wizard, pirate, valleygirl, newscaster1920s, alien_scientist, cyberpunk, detective
 CHARACTER_NAME=wizard
 
-# Text-to-Speech Provider - Options: xtts (local uses the custom character .wav) or openai (uses OpenAI TTS voice)
-TTS_PROVIDER=xtts
+# Text-to-Speech Provider 
+TTS_PROVIDER=openai
 
-# OpenAI TTS Voice - When TTS_PROVIDER is set to openai above, it will use the chosen voice.
-# If MODEL_PROVIDER is ollama, then it will use the .wav in the character folder.
+# OpenAI TTS Voice
 # Voice options: alloy, echo, fable, onyx, nova, shimmer
 OPENAI_TTS_VOICE=onyx
 
@@ -143,7 +126,7 @@ OPENAI_API_KEY=sk-proj-1111111111
 OPENAI_MODEL=gpt-4o
 OLLAMA_MODEL=llama3
 
-# The voice speed for XTTS only (1.0 - 1.5, default is 1.1)
+# The voice speed for XTTS only (1.0 - 1.5, default is 1.1) - cpu only doesn't work leave as is
 XTTS_SPEED=1.2
 
 # NOTES:
