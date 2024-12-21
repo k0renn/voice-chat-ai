@@ -17,6 +17,8 @@ import re
 import io
 import psutil
 import soundfile as sf
+import subprocess
+import sys
 
 # Load environment variables
 load_dotenv()
@@ -47,7 +49,7 @@ character_display_name = CHARACTER_NAME.capitalize()
 
 # Set up the faster-whisper model with the smallest size
 print("Initializing whisper model with CPU...")
-model_size = "tiny.en"
+model_size = "tiny"  # Use a general model like "tiny", not "tiny.en"
 whisper_model = WhisperModel(model_size, device="cpu", compute_type="int8")
 print("Whisper model initialized successfully.")
 
@@ -105,19 +107,41 @@ print(f"Character: {character_display_name}")
 print(f"Text-to-Speech provider: {TTS_PROVIDER}")
 print("To stop chatting say Quit, Leave or Exit. Say, what's on my screen, to have AI view screen. One moment please loading...")
 
-def analyze_mood(user_input):
-    analysis = TextBlob(user_input)
-    polarity = analysis.sentiment.polarity
-    print(f"Sentiment polarity: {polarity}")  # Debugging statement
+def translate_text(text):
+    # Run translation in the specific virtual environment using subprocess
+    result = subprocess.run(
+        ["./googletrans-env/bin/python", "-c", f"from googletrans import Translator; print(Translator().translate('{text}', src='he', dest='en').text)"],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE
+    )
 
-    flirty_keywords = ["flirt", "love", "crush", "charming", "amazing", "attractive"]
-    angry_keywords = ["angry", "furious", "mad", "annoyed", "pissed off"]
-    sad_keywords = ["sad", "depressed", "down", "unhappy", "crying"]
-    fearful_keywords = ["scared", "afraid", "fear", "terrified", "nervous"]
-    surprised_keywords = ["surprised", "amazed", "astonished", "shocked"]
-    disgusted_keywords = ["disgusted", "revolted", "sick", "nauseated"]
-    joyful_keywords = ["joyful", "happy", "elated", "glad", "delighted"]
-    neutral_keywords = ["okay", "alright", "fine", "neutral"]
+    if result.returncode == 0:
+        translation = result.stdout.decode("utf-8").strip()
+        print(f"Translated text: {translation}")
+        return translation
+    else:
+        print(f"Error during translation: {result.stderr.decode('utf-8')}")
+        return None
+
+def analyze_mood(user_input):
+    # Translate input to English for analysis
+    user_input_translated = translate_text(user_input)
+    
+    if user_input_translated:
+        # Sentiment analysis
+        analysis = TextBlob(user_input_translated)
+        polarity = analysis.sentiment.polarity
+        print(f"Sentiment polarity: {polarity}")
+
+    flirty_keywords = ["חיזור", "אהבה", "התרסקות", "מקסים", "מדהים", "אטרקטיבי", "חמוד", "רומנטי", "משוגע", "סקסי", "מעורר עניין", "משחקים", "חסד", "נאה", "מעורר תשומת לב", "מתחיל סיפור", "רומנטי מאוד", "מפתה", "מקסים בטירוף", "יחס מלטף"]
+    angry_keywords = ["כועס", "זועם", "מרוגז", "מעוצבן", "עצבן", "הפכתי", "כועס נורא", "חם", "מוקף", "זעף", "אדום", "מתפוצץ", "מלא עצבים", "מאוכזב", "החיים מסרבים", "שונא", "כמו רותח", "לא יכול לסבול", "ממש כועס", "אפס סבלנות", "במארב"]
+    sad_keywords = ["עצוב", "דיכאוני", "מפסיד", "לא מאושר", "בוכה", "שבור", "מנוסה", "פגוע", "מרוסק", "מכוסה בכאב", "נפול", "חלש", "דכאון", "כואב", "סבל", "מטריד", "ביגוד שחור", "מאוכזב", "נפילה", "בודד", "לא חיוך", "אובד כל תקווה", "לבד"]
+    fearful_keywords = ["מפחד", "חושש", "פחד", "מפוחד", "חסר בטחון", "נבהל", "חסר אונים", "חושש מהעתיד", "הולך לדרוך", "חסרי כוחות", "מבוהל", "מודאג", "סכנה", "השתנק", "לא יודע מה יקרה", "מוטרף", "לא שקט", "סביר להיות פחדן", "נפחד מאוד", "פחד בלתי נשלט", "מאיים", "רועד"]
+    surprised_keywords = ["מופתע", "המום", "מזועזע", "שוק", "מהר", "בהשתוממות", "לא מאמין", "פלא", "לא ייאמן", "שוק טוטאלי", "משהו חדש", "מדהים", "לא צפוי", "נדהם", "הייתי בהלם", "לא אכפת", "מה קורה", "בעיניים פעורות", "בהלם מוחלט", "לא יודע מה לחשוב", "תפלאו", "מסתכל בפה פעור", "מופתע מאוד"]
+    disgusted_keywords = ["מגעיל", "סלידה", "חולה", "מוזהב", "נשבר", "מעורר בחילה", "נפלאי", "עובד עליהם", "מעורר תחושת סלידה", "מכוער", "דוחה", "שונא", "מתעב", "נרתע", "רע", "לא סובל", "גועל נפש", "שוק", "לא יכול לסבול", "חסר רחמים", "מרגיש מגעיל", "הרגשה רעה"]
+    joyful_keywords = ["שמחה", "שמח", "מרוצה", "מאושר", "מלא נחת", "עליז", "אופטימי", "מרומם", "מאוד שמח", "כיף", "גאה", "כפול", "מברך", "מאיר פנים", "פשוט מרגיש טוב", "מיליון דולר", "חגיגה", "תענוג", "חוויית אושר", "שוקולד טוב", "חיים שמחים", "לא יכולה להיות יותר שמח", "סופר מרוצה", "חיוך", "אווירה טובה", "גאווה"]
+    neutral_keywords = ["בסדר", "לא רע", "ככה ככה", "ניטרלי", "סביר", "מה שנראה", "בין לבין", "ממוצע", "רגיל", "סטנדרטי", "לא מצוין", "סולידי", "לא סבלתי", "טוב אבל לא יותר", "מסתדר", "בעדינות", "לא חפץ", "לא גרוע", "לא אכפת לי", "לא משהו", "לא חושב יותר", "מהלך רגיל", "זה מה שיש", "לא קשור"]
+
 
     if any(keyword in user_input.lower() for keyword in flirty_keywords):
         return "flirty"
@@ -178,8 +202,16 @@ def chatgpt_streamed(user_input, system_message, mood_prompt, conversation_histo
                 "temperature": 1.0
             }
         }
+
         response = requests.post(f'{OLLAMA_BASE_URL}/v1/chat/completions', headers=headers, json=payload, stream=True, timeout=30)
         response.raise_for_status()
+
+        # Ensure the response encoding is set to UTF-8
+        response.encoding = 'utf-8'
+
+        # Access the response text and print it (or process it as needed)
+        response_text = response.text
+        print(response_text)
 
         full_response = ""
         line_buffer = ""
@@ -195,14 +227,17 @@ def chatgpt_streamed(user_input, system_message, mood_prompt, conversation_histo
                         if '\n' in line_buffer:
                             lines = line_buffer.split('\n')
                             for line in lines[:-1]:
-                                print(NEON_GREEN + line + RESET_COLOR)
+                                print(NEON_GREEN + line + RESET_COLOR)  # print each line in green
                                 full_response += line + '\n'
                             line_buffer = lines[-1]
                 except json.JSONDecodeError:
                     continue
+
+        # Add remaining buffer content
         if line_buffer:
             print(NEON_GREEN + line_buffer + RESET_COLOR)
             full_response += line_buffer
+
         return full_response
 
     elif MODEL_PROVIDER == 'openai':
@@ -236,11 +271,26 @@ def chatgpt_streamed(user_input, system_message, mood_prompt, conversation_histo
         print("\nOpenAI stream complete.")
         return full_response
 
-def transcribe_with_whisper(audio_file):
-    segments, info = whisper_model.transcribe(audio_file, beam_size=5)
+def transcribe_with_whisper(audio_file, language='he', beam_size=5):
+    """
+    Transcribe audio using the Whisper model.
+    Parameters:
+        audio_file (str): Path to the audio file.
+        language (str): Language code ('he' for automatic language detection, or specify a language like 'he' for Hebrew).
+        beam_size (int): Beam size for beam search (higher values improve accuracy but slower performance).
+    
+    Returns:
+        transcription (str): The transcribed text.
+    """
+    # Transcribe the audio with the specified language (auto-detect or manual language input)
+    segments, info = whisper_model.transcribe(audio_file, language=language, beam_size=beam_size)
+
+    # Concatenate the transcriptions from all segments
     transcription = ""
     for segment in segments:
         transcription += segment.text + " "
+    
+    # Return the full transcription
     return transcription.strip()
 
 def detect_silence(data, threshold=1000, chunk_size=1024):
@@ -389,7 +439,7 @@ def generate_speech(text, temp_audio_path):
                 speaker_wav=character_audio_file,
                 gpt_cond_len=24,
                 temperature=0.2,
-                language='en',
+                language='he',
                 speed=float(os.getenv('XTTS_SPEED', '1.1'))
             )
             synthesized_audio = outputs['wav']
@@ -417,7 +467,7 @@ def process_and_play(prompt, audio_file_pth):
                 speaker_wav=audio_file_pth,
                 gpt_cond_len=24,
                 temperature=0.2,
-                language='en',
+                language='he',
                 speed=float(os.getenv('XTTS_SPEED', '1.1'))
             )
             synthesized_audio = outputs['wav']
@@ -455,9 +505,11 @@ def user_chatbot_conversation():
             user_input = transcribe_with_whisper(audio_file)
             os.remove(audio_file)
             print(CYAN + "You:", user_input + RESET_COLOR)
+
             if user_input.strip() in quit_phrases:
                 print("Quitting the conversation...")
                 break
+            
             conversation_history.append({"role": "user", "content": user_input})
             
             if any(phrase in user_input.lower() for phrase in screenshot_phrases):
@@ -467,16 +519,26 @@ def user_chatbot_conversation():
             mood = analyze_mood(user_input)
             mood_prompt = adjust_prompt(mood)
             
+            # Ensure the chatbot responds in Hebrew
+            base_system_message += "\nPlease respond in Hebrew."
+            mood_prompt += "\nRespond in Hebrew."
+            
             print(PINK + f"{character_display_name}:..." + RESET_COLOR)
             chatbot_response = chatgpt_streamed(user_input, base_system_message, mood_prompt, conversation_history)
+            
             conversation_history.append({"role": "assistant", "content": chatbot_response})
             sanitized_response = sanitize_response(chatbot_response)
+
             if len(sanitized_response) > 400:
                 sanitized_response = sanitized_response[:400] + "..."
+            
+            # Ensure the response is in Hebrew and pass it to the TTS system
             prompt2 = sanitized_response
             process_and_play(prompt2, character_audio_file)
+            
             if len(conversation_history) > 20:
                 conversation_history = conversation_history[-20:]
+    
     except KeyboardInterrupt:
         print("Quitting the conversation...")
 
